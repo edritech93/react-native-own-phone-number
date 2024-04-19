@@ -1,0 +1,45 @@
+ @SuppressLint({"HardwareIds", "MissingPermission"})
+  @ReactMethod(isBlockingSynchronousMethod = true)
+  public String getPhoneNumberSync() {
+    Log.e("TEST_YUDI", "start method get phone number");
+    if (getReactApplicationContext() != null &&
+            (getReactApplicationContext().checkCallingOrSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED ||
+                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && getReactApplicationContext().checkCallingOrSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED) ||
+                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getReactApplicationContext().checkCallingOrSelfPermission(Manifest.permission.READ_PHONE_NUMBERS) == PackageManager.PERMISSION_GRANTED))) {
+      TelephonyManager telMgr = (TelephonyManager) getReactApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+      if (telMgr != null) {
+        try {
+          if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP_MR1) {
+            SubscriptionManager subscriptionManager = SubscriptionManager.from(getReactApplicationContext());
+            List<SubscriptionInfo> subsInfoList = subscriptionManager.getActiveSubscriptionInfoList();
+
+            Log.d("Test", "Current list = " + subsInfoList);
+            
+            for (SubscriptionInfo subscriptionInfo : subsInfoList) {
+
+              String number = subscriptionInfo.getNumber();
+
+              Log.d("Test", " Number is  " + number);
+            }
+          }
+//          SubscriptionManager subscriptionManager = (SubscriptionManager) getReactApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+//          SubscriptionManager subscriptionManager = SubscriptionManager.from(getReactApplicationContext());
+//          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//            return subscriptionManager.getPhoneNumber(1);
+//          } else {
+//            return telMgr.getLine1Number();
+//          }
+
+        } catch (SecurityException e) {
+//          System.err.println("getLine1Number called with permission, but threw anyway: " + e.getMessage());
+          Log.e("TEST_YUDI", Objects.requireNonNull(e.getMessage()));
+        }
+      } else {
+//        System.err.println("Unable to getPhoneNumber. TelephonyManager was null");
+        Log.e("TEST_YUDI", "telMgr == null");
+      }
+    }
+    return "unknown";
+  }
+  @ReactMethod
+  public void getPhoneNumber(Promise p) { p.resolve(getPhoneNumberSync()); }
