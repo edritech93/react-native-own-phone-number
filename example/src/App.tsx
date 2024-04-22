@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Button } from 'react-native';
 import {
   getPermissionReadPhoneNumber,
   getPermissionReadSms,
@@ -30,6 +30,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text>Result: {phoneNumber}</Text>
+      <Button title="TEST" onPress={() => _checkOwnPhoneNumber()} />
     </View>
   );
 }
