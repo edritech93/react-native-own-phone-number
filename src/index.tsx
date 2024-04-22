@@ -17,6 +17,6 @@ const OwnPhoneNumber = NativeModules.OwnPhoneNumber
       }
     );
 
-export function multiply(a: number, b: number): Promise<number> {
-  return OwnPhoneNumber.multiply(a, b);
+export function getOwnPhoneNumber(): Promise<string> {
+  return OwnPhoneNumber.getPhoneNumber();
 }

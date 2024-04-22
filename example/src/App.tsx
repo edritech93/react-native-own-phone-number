@@ -1,18 +1,35 @@
-import * as React from 'react';
-
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import { multiply } from 'react-native-own-phone-number';
+import {
+  getPermissionReadPhoneNumber,
+  getPermissionReadSms,
+} from './permission';
+import { getOwnPhoneNumber } from 'react-native-own-phone-number';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
 
-  React.useEffect(() => {
-    multiply(3, 7).then(setResult);
+  useEffect(() => {
+    _checkOwnPhoneNumber();
   }, []);
+
+  async function _checkOwnPhoneNumber() {
+    await getPermissionReadPhoneNumber().catch((error) => {
+      console.log(error);
+      return;
+    });
+    await getPermissionReadSms().catch((error) => {
+      console.log(error);
+      return;
+    });
+    const myPhone = await getOwnPhoneNumber();
+    console.log('myPhone => ', myPhone);
+    setPhoneNumber(myPhone);
+  }
 
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
+      <Text>Result: {phoneNumber}</Text>
     </View>
   );
 }
@@ -22,10 +39,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  box: {
-    width: 60,
-    height: 60,
-    marginVertical: 20,
   },
 });
