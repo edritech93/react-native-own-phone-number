@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.telephony.SubscriptionManager
+import android.telephony.SubscriptionManager.DEFAULT_SUBSCRIPTION_ID
 import android.telephony.TelephonyManager
 import android.util.Log
 import com.facebook.react.bridge.Promise
@@ -24,7 +25,7 @@ class OwnPhoneNumberModule(reactContext: ReactApplicationContext) :
   @SuppressLint("MissingPermission", "HardwareIds")
   @ReactMethod(isBlockingSynchronousMethod = true)
   fun getPhoneNumberSync(): String {
-    Log.e("TEST_YUDI", "start method get phone number")
+    Log.e(TAG, "start method get phone number")
     if (reactApplicationContext != null &&
       (reactApplicationContext.checkCallingOrSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED || Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && reactApplicationContext.checkCallingOrSelfPermission(
         Manifest.permission.READ_SMS
@@ -34,26 +35,27 @@ class OwnPhoneNumberModule(reactContext: ReactApplicationContext) :
     ) {
       val telMgr =
         reactApplicationContext.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-      if (telMgr != null) {
-        try {
-          Log.d("Test", "TelManager phone = ${telMgr.line1Number}")
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            val subscriptionManager = SubscriptionManager.from(reactApplicationContext)
-            val subsInfoList = subscriptionManager.activeSubscriptionInfoList
-            Log.d("Test", "Current list = $subsInfoList")
-            for (subscriptionInfo in subsInfoList) {
-              val number = subscriptionInfo.number
-              Log.d("Test", " Number is  $number")
-            }
-            return "success"
-          } else {
-            return "under MR1"
+      try {
+        Log.e(TAG, "TelManager phone = ${telMgr.line1Number}")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+          val subscriptionManager = reactApplicationContext.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
+          val subsInfoList = subscriptionManager.activeSubscriptionInfoList
+          Log.e("Test", "Current list = $subsInfoList")
+          for (subscriptionInfo in subsInfoList) {
+            val number = subscriptionInfo.number
+            Log.e("Test", " Number is  $number")
           }
-        } catch (e: SecurityException) {
-          System.err.println("getLine1Number called with permission, but threw anyway: " + e.message)
+          Log.e(TAG, Build.VERSION.SDK_INT.toString())
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val phoneNumber = subscriptionManager.getPhoneNumber(DEFAULT_SUBSCRIPTION_ID)
+            Log.e(TAG, phoneNumber)
+          }
+          return "success"
+        } else {
+          return "under MR1"
         }
-      } else {
-        System.err.println("Unable to getPhoneNumber. TelephonyManager was null")
+      } catch (e: SecurityException) {
+        System.err.println("getLine1Number called with permission, but threw anyway: " + e.message)
       }
     }
     return "unknown"
@@ -67,5 +69,6 @@ class OwnPhoneNumberModule(reactContext: ReactApplicationContext) :
 
   companion object {
     const val NAME = "OwnPhoneNumber"
+    const val TAG = "Test"
   }
 }
